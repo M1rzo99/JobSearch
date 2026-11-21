@@ -24,10 +24,18 @@ class Settings:
     apply_mode: str
 
 
+def clean_token(raw: str) -> str:
+    """Nusxalashda qo'shilib qolgan bo'sh joy, qo'shtirnoq yoki 'bot' prefiksini olib tashlash."""
+    t = (raw or "").strip().strip('"').strip("'").strip()
+    if t.lower().startswith("bot") and ":" in t[3:]:
+        t = t[3:]
+    return t
+
+
 def load_settings() -> Settings:
     return Settings(
-        bot_token=os.environ.get("BOT_TOKEN", ""),
-        owner_id=int(os.environ.get("OWNER_ID") or 0),
+        bot_token=clean_token(os.environ.get("BOT_TOKEN", "")),
+        owner_id=int((os.environ.get("OWNER_ID") or "0").strip() or 0),
         smtp_user=os.environ.get("SMTP_USER", ""),
         smtp_password=os.environ.get("SMTP_PASSWORD", ""),
         smtp_host=os.environ.get("SMTP_HOST", "smtp.gmail.com"),

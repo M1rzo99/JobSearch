@@ -61,3 +61,10 @@ def test_webhook_accept_shifts_entities():
     assert t.encode("utf-16-le")[2*e["offset"]:2*(e["offset"]+e["length"])].decode("utf-16-le") == "통역"
     assert out["reply_markup"]["inline_keyboard"][0][0]["url"] == "https://s/1"
     assert "즉시지원" in out["reply_markup"]["inline_keyboard"][0][0]["text"]
+
+
+def test_clean_token():
+    from app.config import clean_token
+    tok = "123456789:AAHabcdefghijklmnopqrstuvwxyz012345"
+    assert clean_token(f"  {tok}\n") == tok
+    assert clean_token(f'"bot{tok}"') == tok

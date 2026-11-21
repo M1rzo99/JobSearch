@@ -22,7 +22,10 @@ KST = timezone(timedelta(hours=9))
 
 
 def _token() -> str:
-    return os.environ.get("BOT_TOKEN", "")
+    t = os.environ.get("BOT_TOKEN", "").strip().strip('"').strip("'").strip()
+    if t.lower().startswith("bot") and ":" in t[3:]:
+        t = t[3:]
+    return t
 
 
 def webhook_secret(token: str) -> str:

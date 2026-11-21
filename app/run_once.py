@@ -8,9 +8,11 @@ import asyncio
 import hashlib
 import logging
 import os
+import re
 
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
+from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramUnauthorizedError
 from aiogram.types import LinkPreviewOptions
 
 from .cards import job_keyboard, job_text
@@ -36,12 +38,35 @@ def webhook_secret(token: str) -> str:
 
 async def main() -> None:
     settings = load_settings()
-    chat_id = int(os.environ.get("CHAT_ID") or settings.owner_id or 0)
-    if not settings.bot_token or not chat_id:
-        raise SystemExit("BOT_TOKEN va CHAT_ID GitHub Secrets'da bo'lishi kerak")
+    chat_raw = (os.environ.get("CHAT_ID") or "").strip()
+    if not settings.bot_token:
+        raise SystemExit("❌ BOT_TOKEN GitHub Secrets'da yo'q")
+    if not re.fullmatch(r"\d{6,12}:[A-Za-z0-9_-]{30,}", settings.bot_token):
+        raise SystemExit(
+            "❌ BOT_TOKEN noto'g'ri ko'rinishda. U '123456789:AAH...' shaklida bo'lishi kerak "
+            f"(hozir {len(settings.bot_token)} belgi). @BotFather > /mybots > bot > API Token dan qayta nusxalang."
+        )
+    if not re.fullmatch(r"-?\d{5,15}", chat_raw):
+        raise SystemExit("❌ CHAT_ID faqat raqamlardan iborat bo'lishi kerak (@userinfobot ko'rsatgan Id)")
+    chat_id = int(chat_raw)
     db = DB(settings.db_path)
     bot = Bot(settings.bot_token, default=DefaultBotProperties(parse_mode="HTML"))
     try:
+        try:
+            me = await bot.get_me()
+            log.info("bot: @%s", me.username)
+        except (TelegramNotFound, TelegramUnauthorizedError):
+            raise SystemExit(
+                "❌ Telegram bu BOT_TOKEN ni tanimadi. @BotFather > /mybots > bot > API Token dan "
+                "tokenni to'liq qayta nusxalab, GitHub Secrets'dagi BOT_TOKEN ni yangilang."
+            ) from None
+        try:
+            await bot.send_chat_action(chat_id, "typing")
+        except (TelegramForbiddenError, Exception) as e:  # noqa: BLE001
+            raise SystemExit(
+                f"❌ Bot sizga yoza olmayapti ({e}). Telegramda @{me.username} ni ochib Start bosing "
+                "va CHAT_ID @userinfobot ko'rsatgan raqam ekanini tekshiring."
+            ) from None
         hook = (os.environ.get("WEBHOOK_URL") or "").strip().rstrip("/")
         if hook:
             if not hook.startswith("http"):
