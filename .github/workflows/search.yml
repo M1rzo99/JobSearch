@@ -3,6 +3,8 @@ name: Ish qidirish
 on:
   schedule:
     - cron: "*/10 * * * *"   # har 10 daqiqada (GitHub ba'zan 5-15 daqiqa kechiktiradi)
+  push:
+    branches: [main]       # yangilanish merge bo'lganda darhol ishga tushadi
   workflow_dispatch: {}      # "Run workflow" tugmasi bilan qo'lda ishga tushirish
 
 permissions:
@@ -15,7 +17,7 @@ concurrency:
 jobs:
   search:
     # /pause bilan to'xtatilgan bo'lsa avtomatik ishlamaydi, /search (qo'lda) esa baribir ishlaydi
-    if: vars.PAUSED != 'true' || github.event_name == 'workflow_dispatch'
+    if: vars.PAUSED != 'true' || github.event_name != 'schedule'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
