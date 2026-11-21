@@ -1,0 +1,7 @@
+app/
+tests/
+data/
+.github/
+Dockerfile
+requirements.txt
+profile.yaml
