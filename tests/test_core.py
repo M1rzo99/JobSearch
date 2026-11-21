@@ -81,3 +81,21 @@ def test_clean_token():
     tok = "123456789:AAHabcdefghijklmnopqrstuvwxyz012345"
     assert clean_token(f"  {tok}\n") == tok
     assert clean_token(f'"bot{tok}"') == tok
+
+
+def test_profile_filters():
+    from app.matcher import max_salary_manwon
+    p = load_profile()
+    mk = lambda **k: score_job(Job("x","1","u", k.pop("title", "백엔드 개발자"), "A", **k), p).score > 0
+    assert mk(location="서울 강남구") and mk(location="경기 성남시") and mk(location="대전 유성구")
+    assert mk(location="")                                  # hudud yozilmagan -> o'tadi
+    assert not mk(location="부산 해운대구")
+    assert not mk(job_type="계약직")
+    assert mk(job_type="정규직, 계약직")
+    assert not mk(title="QA 인턴")
+    assert mk(title="IT PM (우즈베키스탄 프로젝트)")
+    assert not mk(salary="2,800~3,000만원")
+    assert mk(salary="3,000~4,000만원") and mk(salary="면접 후 결정")
+    assert max_salary_manwon("월 250만원") == 3000
+    assert max_salary_manwon("연봉 35,000,000원") == 3500
+    assert max_salary_manwon("회사내규에 따름") is None
