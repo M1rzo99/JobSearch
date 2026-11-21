@@ -31,6 +31,12 @@ search_queries:
   - 외국인 IT
   - IT 통역
   - 외국인 PM
+  # CV bo'yicha (프론트엔드 / 웹 / AI 서비스 개발)
+  - 프론트엔드 React
+  - Next.js 개발자
+  - 웹개발자 외국인
+  - AI 서비스 개발자
+  - LLM 개발자
 
 # Faqat shu 3 toifaga tushgan e'lonlar ko'rsatiladi.
 # "all" ichidagi har bir guruhdan kamida bitta so'z topilishi kerak.
@@ -60,6 +66,27 @@ keywords:
   외국인: 2
   IT: 2
   개발자: 2
+  # CV dagi texnologiyalar
+  프론트엔드: 4
+  웹개발: 3
+  React: 4
+  Next.js: 4
+  NextJS: 4
+  TypeScript: 3
+  JavaScript: 2
+  Node.js: 2
+  Tailwind: 1
+  AI 서비스: 3
+  LLM: 3
+  Python: 1
+  # Viza (D-10 -> E-7-1) uchun foydali belgilar
+  비자 지원: 4
+  비자지원: 4
+  E-7: 4
+  외국인 가능: 3
+  외국인 우대: 3
+  우즈베크어 가능: 4
+  러시아어: 1
 
 # Sarlavhada shu so'zlar bo'lsa e'lon umuman ko'rsatilmaydi
 exclude:
@@ -79,3 +106,14 @@ not_full_time: [계약직, 인턴, 아르바이트, 알바, 파트타임, 프리
 
 # Eng kam yillik maosh, 만원 da (3500 = 35 mln won). Maosh yozilmagan yoki kelishiladigan e'lonlar o'tadi.
 min_salary_manwon: 3500
+
+# Tajriba: ~3 yil. Talab qilinadigan eng kam tajriba shundan ko'p bo'lsa o'tkazilmaydi.
+max_required_years: 4
+# Sarlavhada shu so'zlar bo'lsa (yuqori lavozim) o'tkazilmaydi
+senior_words: [시니어, Senior, 리드, Lead, 팀장, 파트장, CTO, 책임, 수석, Principal, Staff]
+
+# E'lon matnida shular bo'lsa (chet elliklar qabul qilinmaydi) o'tkazilmaydi
+exclude_text: [내국인만, 외국인 지원 불가, 외국인 불가, 외국인 채용 불가, 한국 국적자만, 대한민국 국적]
+
+# Bir qidiruvda eng ko'pi bilan nechta e'lon yuborilsin (qolganlari keyingi safar)
+max_per_run: 12

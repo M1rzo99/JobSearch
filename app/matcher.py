@@ -67,7 +67,32 @@ def max_salary_manwon(text: str) -> int | None:
     return int(best) if best else None
 
 
+_YEARS = re.compile(r"(\d{1,2})(?=\s*(?:년|~|-|\s*년))")
+
+
+def min_required_years(career: str) -> int | None:
+    """'경력 3~5년', '경력 5년 이상', '신입·경력' -> eng kam talab qilinadigan yil. Noma'lum/신입 -> None."""
+    if not career or "무관" in career:
+        return None
+    if "신입" in career:
+        return 0
+    m = _YEARS.findall(career)
+    if m:
+        return min(int(x) for x in m)
+    if career.strip().isdigit():
+        return int(career.strip())
+    return None
+
+
 def passes_filters(job: Job, profile: dict) -> bool:
+    if _any(job.title, profile.get("senior_words") or []):
+        return False
+    max_y = profile.get("max_required_years")
+    req = min_required_years(job.career)
+    if max_y is not None and req is not None and req > int(max_y):
+        return False
+    if job.description and _any(job.description, profile.get("exclude_text") or []):
+        return False
     locs = profile.get("locations") or []
     if locs and job.location and not _any(job.location, locs):
         return False

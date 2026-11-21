@@ -80,7 +80,15 @@ async def main() -> None:
             await bot.send_message(chat_id, WELCOME)
             db.kv_set("welcomed", "1")
 
-        jobs = await collect(settings, load_profile(), db)
+        profile = load_profile()
+        jobs = await collect(settings, profile, db)
+        limit = int(profile.get("max_per_run") or 0)
+        if limit and len(jobs) > limit:
+            # Qolganlarini bazadan o'chiramiz: keyingi qidiruvda yana topilib, yuboriladi
+            for extra in jobs[limit:]:
+                db.conn.execute("DELETE FROM jobs WHERE uid=?", (extra.uid,))
+            db.conn.commit()
+            jobs = jobs[:limit]
         log.info("yangi mos e'lonlar: %d", len(jobs))
         for job in jobs:
             msg = await bot.send_message(

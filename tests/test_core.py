@@ -99,3 +99,16 @@ def test_profile_filters():
     assert max_salary_manwon("월 250만원") == 3000
     assert max_salary_manwon("연봉 35,000,000원") == 3500
     assert max_salary_manwon("회사내규에 따름") is None
+
+
+def test_cv_filters():
+    from app.matcher import min_required_years
+    p = load_profile()
+    sc = lambda **k: score_job(Job("x","1","u", k.pop("title", "프론트엔드 개발자 (React)"), "A", **k), p).score
+    assert sc() > sc(title="QA 엔지니어")                       # CV texnologiyalari yuqoriroq
+    assert sc(title="시니어 프론트엔드 개발자") < 0
+    assert sc(career="경력 7년 이상") < 0
+    assert sc(career="경력 2~4년") > 0 and sc(career="신입·경력") > 0
+    assert sc(description="내국인만 지원 가능") < 0
+    assert sc(description="외국인 가능, 비자 지원") > sc()
+    assert min_required_years("경력 3~5년") == 3 and min_required_years("경력무관") is None
