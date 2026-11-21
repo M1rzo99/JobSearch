@@ -54,7 +54,8 @@ async def enrich(job: Job) -> Job:
             d = (r.json().get("job") or {}).get("detail") or {}
             parts = [d.get(k, "") for k in ("intro", "main_tasks", "requirements", "preferred_points", "benefits")]
             job.description = "\n\n".join(p for p in parts if p)
-            job.career = str((r.json().get("job") or {}).get("annual_from", "") or "")
+            yrs = (r.json().get("job") or {}).get("annual_from")
+            job.career = f"경력 {yrs}년 이상" if yrs else ""
         except Exception:  # noqa: BLE001
             try:
                 r = await c.get(job.url)
