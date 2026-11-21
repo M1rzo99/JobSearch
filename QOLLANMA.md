@@ -2,7 +2,7 @@
 
 Bot ikki bepul xizmatda ishlaydi, kompyuteringiz o'chiq bo'lsa ham:
 
-- **GitHub Actions** har 30 daqiqada saytlardan yangi ishlarni qidirib, Telegramga yuboradi.
+- **GitHub Actions** har 10 daqiqada saytlardan yangi ishlarni qidirib, Telegramga yuboradi.
 - **Vercel** ✅ Topshirish va ✕ Rad etish tugmalarini darhol ishlatadi.
 
 Ikkalasi ham bepul, karta so'ramaydi va GitHub akkauntingiz bilan kiriladi.
@@ -43,7 +43,7 @@ Ikkalasi ham bepul, karta so'ramaydi va GitHub akkauntingiz bilan kiriladi.
 2. Chapda **Ish qidirish** > o'ngda **Run workflow** > yana **Run workflow**.
 3. 2–3 daqiqada Telegramga "👋 Ish Topish ishga tushdi!" xabari, keyin e'lonlar keladi.
 
-Shundan keyin bot har 30 daqiqada o'zi ishlaydi. Hech narsa bosish shart emas.
+Shundan keyin bot har 10 daqiqada o'zi ishlaydi. Hech narsa bosish shart emas.
 
 ---
 
@@ -61,3 +61,25 @@ Shundan keyin bot har 30 daqiqada o'zi ishlaydi. Hech narsa bosish shart emas.
 
 ### Biror narsa ishlamasa
 Actions sahifasida qizil ❌ bo'lgan ishni oching, ekranni rasmga olib menga yuboring.
+
+### Bot buyruqlari
+Telegramda chap pastdagi **Menu** tugmasida:
+- `/status` — bot oxirgi marta qachon ishladi, nechta e'lon yubordi
+- `/stats` — saytlar bo'yicha statistika
+- `/search` — hoziroq qidirish (10 daqiqani kutmasdan)
+- `/pause` va `/resume` — qidiruvni to'xtatish / davom ettirish
+- `/help` — yordam
+
+`/status`, `/stats`, `/help` darhol ishlaydi. `/search`, `/pause`, `/resume` uchun bir martalik sozlash kerak:
+
+1. https://github.com/settings/personal-access-tokens/new sahifasini oching.
+2. **Token name**: `jobsearch-bot`, **Expiration**: 1 yil.
+3. **Repository access** > **Only select repositories** > **JobSearch**.
+4. **Permissions** > **Repository permissions**:
+   **Actions** = Read and write, **Variables** = Read and write.
+5. **Generate token** bosing va tokenni nusxalang.
+6. Vercel > loyihangiz > **Settings** > **Environment Variables**:
+   Key: `GH_TOKEN`, Value: shu token > **Save**.
+7. Vercel > **Deployments** > oxirgisi > **⋯** > **Redeploy**.
+
+Eslatma: GitHub jadvaldagi ishlarni ba'zan 5–15 daqiqa kechiktiradi. Bu normal holat.

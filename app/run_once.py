@@ -1,4 +1,4 @@
-"""Bir martalik qidiruv: GitHub Actions har 30 daqiqada shu faylni ishga tushiradi.
+"""Bir martalik qidiruv: GitHub Actions har 10 daqiqada shu faylni ishga tushiradi.
 
 1. Saytlardan yangi e'lonlarni yig'adi (dublikatlarsiz, data/jobs.db bo'yicha).
 2. Ularni Telegramga yuboradi.
@@ -13,7 +13,7 @@ import re
 from aiogram import Bot
 from aiogram.client.default import DefaultBotProperties
 from aiogram.exceptions import TelegramForbiddenError, TelegramNotFound, TelegramUnauthorizedError
-from aiogram.types import LinkPreviewOptions
+from aiogram.types import BotCommand, LinkPreviewOptions
 
 from .cards import job_keyboard, job_text
 from .config import load_profile, load_settings
@@ -25,7 +25,7 @@ log = logging.getLogger("run_once")
 
 WELCOME = (
     "👋 <b>Ish Topish</b> ishga tushdi!\n\n"
-    "Har 30 daqiqada Wanted, Saramin va JobKorea'dan sizga mos ishlarni topib, shu yerga yuboraman.\n\n"
+    "Har 10 daqiqada Wanted, Saramin va JobKorea'dan sizga mos ishlarni topib, shu yerga yuboraman.\n\n"
     "🔗 <b>E'lonni ochish</b> — saytda o'zingiz topshirasiz\n"
     "✕ <b>Rad etish</b> — e'lon o'chib ketadi\n\n"
     "Bir e'lon bir nechta saytda bo'lsa ham, sizga faqat bir marta keladi."
@@ -76,6 +76,17 @@ async def main() -> None:
                 secret_token=webhook_secret(settings.bot_token),
                 allowed_updates=["message", "callback_query"],
             )
+        db.kv_set("chat_id", str(chat_id))
+        if db.kv_get("commands_v") != "2":
+            await bot.set_my_commands([
+                BotCommand(command="search", description="🔎 Hoziroq qidirish"),
+                BotCommand(command="status", description="🤖 Bot holati"),
+                BotCommand(command="stats", description="📊 Statistika"),
+                BotCommand(command="pause", description="⏸ Qidiruvni to'xtatish"),
+                BotCommand(command="resume", description="▶️ Davom ettirish"),
+                BotCommand(command="help", description="❓ Yordam"),
+            ])
+            db.kv_set("commands_v", "2")
         if db.kv_get("welcomed") != "1":
             await bot.send_message(chat_id, WELCOME)
             db.kv_set("welcomed", "1")

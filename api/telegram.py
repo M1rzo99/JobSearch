@@ -9,6 +9,9 @@ Vercel'da faqat BOT_TOKEN o'zgaruvchisi kerak.
 import hashlib
 import json
 import os
+import sqlite3
+import tempfile
+import urllib.error
 import urllib.request
 from datetime import datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler
@@ -109,14 +112,174 @@ def handle_update(update: dict) -> None:
 
     m = update.get("message")
     if m and (m.get("text") or "").startswith("/"):
-        tg("sendMessage", {
-            "chat_id": m["chat"]["id"],
-            "parse_mode": "HTML",
-            "text": (
-                "🤖 Men har 30 daqiqada yangi mos ishlarni o'zim yuboraman.\n"
-                f"Sizning chat ID: <code>{m['chat']['id']}</code>"
-            ),
-        })
+        handle_command(m)
+
+
+# ---------------- Buyruqlar ----------------
+
+def _repo() -> str:
+    owner = os.environ.get("VERCEL_GIT_REPO_OWNER")
+    slug = os.environ.get("VERCEL_GIT_REPO_SLUG")
+    return os.environ.get("GITHUB_REPO") or (f"{owner}/{slug}" if owner and slug else "M1rzo99/JobSearch")
+
+
+def gh(method: str, path: str, body: dict | None = None) -> tuple[int, dict]:
+    """GitHub API. GH_TOKEN bo'lmasa faqat ochiq (o'qish) so'rovlar ishlaydi."""
+    headers = {"Accept": "application/vnd.github+json", "User-Agent": "ish-topish-bot"}
+    tok = os.environ.get("GH_TOKEN", "").strip()
+    if tok:
+        headers["Authorization"] = f"Bearer {tok}"
+    data = json.dumps(body).encode() if body is not None else None
+    if data:
+        headers["Content-Type"] = "application/json"
+    req = urllib.request.Request(f"https://api.github.com/repos/{_repo()}{path}", data=data, headers=headers, method=method)
+    try:
+        with urllib.request.urlopen(req, timeout=10) as r:
+            raw = r.read()
+            return r.status, (json.loads(raw) if raw else {})
+    except urllib.error.HTTPError as e:
+        return e.code, {}
+    except Exception:  # noqa: BLE001
+        return 0, {}
+
+
+def load_db() -> sqlite3.Connection | None:
+    """bot-state branchidagi bazani o'qish (repo ochiq)."""
+    try:
+        url = f"https://raw.githubusercontent.com/{_repo()}/bot-state/jobs.db"
+        with urllib.request.urlopen(url, timeout=10) as r:
+            path = os.path.join(tempfile.gettempdir(), "jobs.db")
+            with open(path, "wb") as f:
+                f.write(r.read())
+        return sqlite3.connect(path)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def owner_chat(db: sqlite3.Connection | None) -> int | None:
+    if not db:
+        return None
+    try:
+        row = db.execute("SELECT v FROM kv WHERE k='chat_id'").fetchone()
+        if row and row[0]:
+            return int(row[0])
+        row = db.execute("SELECT chat_id FROM jobs WHERE chat_id IS NOT NULL LIMIT 1").fetchone()
+        return int(row[0]) if row else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def is_paused() -> bool | None:
+    code, data = gh("GET", "/actions/variables/PAUSED")
+    if code == 200:
+        return str(data.get("value", "")).lower() == "true"
+    if code == 404 and os.environ.get("GH_TOKEN"):
+        return False
+    return None
+
+
+def set_paused(value: bool) -> bool:
+    body = {"name": "PAUSED", "value": "true" if value else "false"}
+    code, _ = gh("PATCH", "/actions/variables/PAUSED", body)
+    if code == 404:
+        code, _ = gh("POST", "/actions/variables", body)
+    return code in (200, 201, 204)
+
+
+NEED_TOKEN = (
+    "⚙️ Bu buyruq uchun Vercel'da <code>GH_TOKEN</code> kerak.\n"
+    "Qo'llanma: QOLLANMA.md > \"Buyruqlarni yoqish\"."
+)
+
+HELP = (
+    "🤖 <b>Ish Topish</b> — buyruqlar\n\n"
+    "/search — hoziroq qidirish\n"
+    "/status — bot holati va oxirgi qidiruv\n"
+    "/stats — statistika\n"
+    "/pause — avtomatik qidiruvni to'xtatish\n"
+    "/resume — davom ettirish\n"
+    "/help — shu ro'yxat\n\n"
+    "Bot har 10 daqiqada o'zi qidiradi (GitHub ba'zan 5–15 daqiqa kechiktiradi)."
+)
+
+
+def _fmt_time(iso: str) -> str:
+    try:
+        dt = datetime.fromisoformat(iso.replace("Z", "+00:00")).astimezone(KST)
+        return dt.strftime("%d.%m %H:%M")
+    except Exception:  # noqa: BLE001
+        return iso or "—"
+
+
+def handle_command(m: dict) -> None:
+    chat_id = m["chat"]["id"]
+    cmd = (m.get("text") or "").split()[0].split("@")[0].lower()
+    send = lambda text: tg("sendMessage", {"chat_id": chat_id, "text": text, "parse_mode": "HTML",
+                                           "link_preview_options": {"is_disabled": True}})
+    db = load_db()
+    owner = owner_chat(db)
+    if owner and chat_id != owner:
+        send("Bu shaxsiy bot.")
+        return
+
+    if cmd in ("/start", "/help"):
+        send(HELP)
+    elif cmd == "/search":
+        code, _ = gh("POST", "/actions/workflows/search.yml/dispatches", {"ref": "main"})
+        if code == 204:
+            send("🔎 Qidiruv boshlandi. 2–4 daqiqada yangi e'lonlar keladi (agar topilsa).")
+        elif code in (401, 403, 404) or not os.environ.get("GH_TOKEN"):
+            send(NEED_TOKEN)
+        else:
+            send(f"⚠️ Qidiruvni boshlab bo'lmadi (GitHub javobi: {code}).")
+    elif cmd in ("/pause", "/resume"):
+        if not os.environ.get("GH_TOKEN"):
+            send(NEED_TOKEN)
+        elif set_paused(cmd == "/pause"):
+            send("⏸ Avtomatik qidiruv to'xtatildi. /resume bilan yoqasiz." if cmd == "/pause"
+                 else "▶️ Avtomatik qidiruv yoqildi, har 10 daqiqada ishlaydi.")
+        else:
+            send("⚠️ O'zgartirib bo'lmadi. GH_TOKEN ruxsatlarini tekshiring (Variables: Read and write).")
+    elif cmd == "/status":
+        code, data = gh("GET", "/actions/workflows/search.yml/runs?per_page=1")
+        runs = data.get("workflow_runs") or []
+        paused = is_paused()
+        state = {True: "⏸ to'xtatilgan", False: "▶️ ishlayapti", None: "▶️ ishlayapti"}[paused]
+        lines = [f"🤖 <b>Holat:</b> {state}", "⏱ Har 10 daqiqada qidiradi"]
+        if runs:
+            r = runs[0]
+            res = {"success": "✅", "failure": "❌", "cancelled": "⏹"}.get(r.get("conclusion") or "", "⏳")
+            lines.append(f"🕒 Oxirgi qidiruv: {_fmt_time(r.get('created_at', ''))} {res}")
+        if db:
+            try:
+                total = db.execute("SELECT COUNT(*) FROM jobs").fetchone()[0]
+                sent = db.execute("SELECT COUNT(*) FROM jobs WHERE message_id IS NOT NULL").fetchone()[0]
+                lines.append(f"📨 Yuborilgan e'lonlar: <b>{sent}</b> (ko'rib chiqilgan: {total})")
+            except Exception:  # noqa: BLE001
+                pass
+        send("\n".join(lines))
+    elif cmd == "/stats":
+        if not db:
+            send("📊 Hali statistika yo'q.")
+            return
+        try:
+            rows = db.execute(
+                "SELECT source, COUNT(*), SUM(message_id IS NOT NULL) FROM jobs GROUP BY source"
+            ).fetchall()
+            day = int(datetime.now(KST).replace(hour=0, minute=0, second=0).timestamp())
+            today = db.execute(
+                "SELECT COUNT(*) FROM jobs WHERE message_id IS NOT NULL AND created_at>=?", (day,)
+            ).fetchone()[0]
+        except Exception:  # noqa: BLE001
+            send("📊 Statistikani o'qib bo'lmadi.")
+            return
+        names = {"wanted": "🟦 Wanted", "saramin": "🟩 Saramin", "jobkorea": "🟪 JobKorea"}
+        lines = ["📊 <b>Statistika</b>", f"Bugun yuborilgan: <b>{today}</b>", ""]
+        for src, total, sent in rows:
+            lines.append(f"{names.get(src, src)}: {int(sent or 0)} yuborilgan / {total} ko'rilgan")
+        send("\n".join(lines))
+    else:
+        send(HELP)
 
 
 class handler(BaseHTTPRequestHandler):  # Vercel shu nomni qidiradi
