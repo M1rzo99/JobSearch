@@ -52,26 +52,20 @@ def job_text(job: Job, accepted_note: str = "", email_mode: bool = False) -> str
     lines.append("")
     lines.append(f"🎯 Moslik: <b>{_stars(job.score)}</b>")
     if job.matched:
-        lines.append(" ".join(f"#{_e(m.replace(' ', '_'))}" for m in job.matched[:6]))
+        cat, rest = job.matched[0], job.matched[1:]
+        lines.append(f"🏷 <b>{_e(cat)}</b>  " + " ".join(f"#{_e(m.replace(' ', '_'))}" for m in rest[:5]))
     if job.description:
         desc = _e(job.description.strip()[:900])
         lines.append(f"\n<blockquote expandable>{desc}</blockquote>")
-    if email_mode and job.apply_email:
-        how = "📧 Email orqali avtomatik topshiriladi"
-    else:
-        how = f"🚀 {src} rezyumeingiz bilan topshiriladi"
-    lines.append(f"\n{icon} <i>{src}</i> · {how}")
+    lines.append(f"\n{icon} <i>{src}</i>")
     return "\n".join(lines)
 
 
 def job_keyboard(uid: str, url: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(inline_keyboard=[
-        [
-            InlineKeyboardButton(text="✅ Topshirish", callback_data=f"acc|{uid}"),
-            InlineKeyboardButton(text="✕ Rad etish", callback_data=f"rej|{uid}"),
-        ],
-        [InlineKeyboardButton(text="🔗 E'lonni ochish", url=url)],
-    ])
+    return InlineKeyboardMarkup(inline_keyboard=[[
+        InlineKeyboardButton(text="✕ Rad etish", callback_data=f"rej|{uid}"),
+        InlineKeyboardButton(text="🔗 E'lonni ochish", url=url),
+    ]])
 
 
 def accepted_keyboard(url: str, source: str = "") -> InlineKeyboardMarkup:
