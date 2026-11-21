@@ -1,0 +1,62 @@
+# Sizning profilingiz. Bot e'lonlarni shu ma'lumotlar bo'yicha tanlaydi va ariza yozadi.
+# <...> belgilarini o'zingizning ma'lumotlaringiz bilan almashtiring.
+
+name_ko: "<이름>"            # koreyscha ism
+name_en: "<Ism Familiya>"
+phone: "<010-0000-0000>"
+email: "<sizning@gmail.com>"   # ariza shu manzildan yuboriladi (SMTP_USER bilan bir xil)
+location: "<서울>"            # hozir yashash joyi
+visa: "<F-2>"                 # viza turi
+topik: "<6급>"
+languages: ["우즈베크어 (모국어)", "한국어", "러시아어"]
+summary_ko: >
+  우즈베크어-한국어 통번역 경험을 바탕으로 한국과 우즈베키스탄 간 비즈니스,
+  계약, 현장 통역을 정확하게 지원할 수 있습니다.
+
+# Arizaga biriktiriladigan fayllar (data/files/ papkasiga joylang)
+attachments:
+  - data/files/resume_ko.pdf
+  # - data/files/cover_letter_ko.pdf
+  # - data/files/topik.pdf
+
+# Qidiruv so'zlari (har bir sayt uchun shu so'zlar bilan qidiriladi)
+search_queries:
+  - 우즈베크어
+  - 우즈베키스탄
+  - 우즈벡
+  - 우즈베크어 통역
+  - 러시아어 통역
+  - 중앙아시아
+  - CIS 해외영업
+  - 통번역 우즈베크
+
+# Moslik ballari: matnda shu so'z bo'lsa ball qo'shiladi
+keywords:
+  우즈베크: 5
+  우즈벡: 5
+  우즈베키스탄: 5
+  uzbek: 5
+  타슈켄트: 4
+  tashkent: 4
+  중앙아시아: 3
+  CIS: 2
+  통역: 3
+  번역: 3
+  통번역: 3
+  interpreter: 3
+  translator: 3
+  러시아어: 2
+  해외영업: 1
+  무역: 1
+  코트라: 1
+  KOICA: 2
+
+# Shu so'zlar bo'lsa e'lon umuman ko'rsatilmaydi
+exclude:
+  - 일본어
+  - 중국어 원어민
+  - 베트남어
+  - 영어 원어민
+
+# Ish turi filtrlari (bo'sh qoldirsangiz hammasi)
+job_types: []   # masalan: ["정규직", "계약직", "프리랜서", "재택"]
