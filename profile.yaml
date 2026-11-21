@@ -22,41 +22,49 @@ attachments:
 # Qidiruv so'zlari (har bir sayt uchun shu so'zlar bilan qidiriladi)
 search_queries:
   - 우즈베크어
+  - 우즈베크어 통역
+  - 우즈베크어 번역
   - 우즈베키스탄
   - 우즈벡
-  - 우즈베크어 통역
-  - 러시아어 통역
-  - 중앙아시아
-  - CIS 해외영업
-  - 통번역 우즈베크
+  - 우즈베키스탄 IT
+  - 외국인 개발자
+  - 외국인 IT
 
-# Moslik ballari: matnda shu so'z bo'lsa ball qo'shiladi
+# Faqat shu 3 toifaga tushgan e'lonlar ko'rsatiladi.
+# "all" ichidagi har bir guruhdan kamida bitta so'z topilishi kerak.
+categories:
+  "Tarjima":
+    all:
+      - [통역, 번역, 통번역, 통역사, 번역가, interpreter, translator, translation]
+      - [우즈베크, 우즈벡, 우즈베키스탄, Uzbek, Uzbekistan]
+  "Hamkorlik":
+    all:
+      - [우즈베키스탄, 우즈베크, 우즈벡, 타슈켄트, Uzbekistan, Uzbek, Tashkent]
+  "IT":
+    title_only: true
+    all:
+      - [개발자, 백엔드, 프론트엔드, 풀스택, 소프트웨어, 웹개발, 앱개발, 데이터 엔지니어, 데이터 분석, 데브옵스, 퍼블리셔, IT, QA, developer, engineer, frontend, backend, fullstack, DevOps, software]
+
+# Tartiblash uchun ballar (yulduzlar soni)
 keywords:
   우즈베크: 5
   우즈벡: 5
   우즈베키스탄: 5
-  uzbek: 5
+  Uzbek: 5
   타슈켄트: 4
-  tashkent: 4
-  중앙아시아: 3
-  CIS: 2
   통역: 3
   번역: 3
   통번역: 3
-  interpreter: 3
-  translator: 3
-  러시아어: 2
-  해외영업: 1
-  무역: 1
-  코트라: 1
-  KOICA: 2
+  외국인: 2
+  IT: 2
+  개발자: 2
 
-# Shu so'zlar bo'lsa e'lon umuman ko'rsatilmaydi
+# Sarlavhada shu so'zlar bo'lsa e'lon umuman ko'rsatilmaydi
 exclude:
+  - 영업
+  - 세일즈
+  - sales
+  - 텔레마케팅
   - 일본어
-  - 중국어 원어민
+  - 중국어
   - 베트남어
-  - 영어 원어민
-
-# Ish turi filtrlari (bo'sh qoldirsangiz hammasi)
-job_types: []   # masalan: ["정규직", "계약직", "프리랜서", "재택"]

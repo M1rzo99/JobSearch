@@ -43,7 +43,7 @@ async def collect(settings: Settings, profile: dict, db: DB) -> list[Job]:
         except Exception as e:  # noqa: BLE001
             log.warning("enrich %s: %s", job.uid, e)
         score_job(job, profile)                    # to'liq matn bo'yicha qayta baho
-        if job.score < settings.min_score:
+        if job.score <= 0:
             db.set_status(job.uid, "skipped")
             continue
         db.conn.execute("UPDATE jobs SET score=?, apply_email=? WHERE uid=?", (job.score, job.apply_email, job.uid))

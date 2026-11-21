@@ -21,14 +21,27 @@ def test_dedup_cross_platform(tmp_path):
 def test_score():
     p = load_profile()
     j = score_job(Job("x","1","u","우즈베크어 통역사 채용","A", description="타슈켄트 출장"), p)
-    assert j.score >= 10 and "우즈베크" in j.matched
+    assert j.score >= 10 and j.matched[0] == "Tarjima"
     assert score_job(Job("x","2","u","일본어 통역","A"), p).score == -1
+
+def test_categories_filter():
+    p = load_profile()
+    ok = lambda t, d="": score_job(Job("x","1","u",t,"A", description=d), p).score > 0
+    assert ok("한-우즈베크 무역회사 사무직", "타슈켄트 지사")          # Hamkorlik
+    assert ok("백엔드 개발자 (Python)")                                # IT
+    assert ok("Frontend Developer")                                    # IT
+    assert not ok("해외영업 담당 (우즈베키스탄)")                       # 영업 chiqarib tashlanadi
+    assert not ok("영어 통역사")                                       # o'zbekchasiz tarjima emas
+    assert not ok("물류센터 사무직", "We work with partners")          # 'IT' so'z ichida emas
+    assert not ok("회계 담당자")
 
 def test_card_html():
     j = Job("saramin","1","https://x","통역 <A&B>","회사", location="서울", description="a<b>", score=12, matched=["통역"])
     t = job_text(j)
     assert "&lt;A&amp;B&gt;" in t and "<blockquote expandable>" in t
-    assert len(job_keyboard(j.uid, j.url).inline_keyboard[0][0].callback_data.encode()) <= 64
+    kb = job_keyboard(j.uid, j.url).inline_keyboard
+    assert len(kb) == 1 and kb[0][0].callback_data.startswith("rej|") and kb[0][1].url == "https://x"
+    assert len(kb[0][0].callback_data.encode()) <= 64
 
 def test_saramin_html(monkeypatch):
     html = '''<div class="item_recruit" value="555"><h2 class="job_tit"><a href="/zf_user/jobs/relay/view?rec_idx=555" title="우즈베크어 통역">x</a></h2>

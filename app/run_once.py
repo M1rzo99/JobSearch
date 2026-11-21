@@ -26,7 +26,7 @@ log = logging.getLogger("run_once")
 WELCOME = (
     "👋 <b>Ish Topish</b> ishga tushdi!\n\n"
     "Har 30 daqiqada Wanted, Saramin va JobKorea'dan sizga mos ishlarni topib, shu yerga yuboraman.\n\n"
-    "✅ <b>Topshirish</b> — e'lon belgilanadi va saytning 즉시지원 sahifasi tugmasi chiqadi\n"
+    "🔗 <b>E'lonni ochish</b> — saytda o'zingiz topshirasiz\n"
     "✕ <b>Rad etish</b> — e'lon o'chib ketadi\n\n"
     "Bir e'lon bir nechta saytda bo'lsa ham, sizga faqat bir marta keladi."
 )
