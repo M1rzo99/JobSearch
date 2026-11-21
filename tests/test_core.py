@@ -45,3 +45,19 @@ def test_accepted_keyboard_points_to_platform():
     kb = accepted_keyboard("https://www.saramin.co.kr/zf_user/jobs/relay/view?rec_idx=1", "saramin")
     b = kb.inline_keyboard[0][0]
     assert "즉시지원" in b.text and b.url.startswith("https://www.saramin.co.kr")
+
+def test_webhook_accept_shifts_entities():
+    from datetime import datetime
+    from api.telegram import accepted_edit, utf16_len, webhook_secret
+    from app.run_once import webhook_secret as ws2
+    assert webhook_secret("t") == ws2("t")
+    msg = {"chat": {"id": 1}, "message_id": 2, "text": "🏢 통역 직무",
+           "entities": [{"type": "bold", "offset": 3, "length": 2}],
+           "reply_markup": {"inline_keyboard": [[{"text": "a", "callback_data": "acc|saramin:1"}], [{"text": "o", "url": "https://s/1"}]]}}
+    out = accepted_edit(msg, "saramin", datetime(2026, 11, 21, 12, 0))
+    prefix = out["text"][: out["text"].index("🏢")]
+    assert out["entities"][1]["offset"] == 3 + utf16_len(prefix)
+    t = out["text"]; e = out["entities"][1]
+    assert t.encode("utf-16-le")[2*e["offset"]:2*(e["offset"]+e["length"])].decode("utf-16-le") == "통역"
+    assert out["reply_markup"]["inline_keyboard"][0][0]["url"] == "https://s/1"
+    assert "즉시지원" in out["reply_markup"]["inline_keyboard"][0][0]["text"]
