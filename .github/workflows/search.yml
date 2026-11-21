@@ -1,0 +1,58 @@
+name: Ish qidirish
+
+on:
+  schedule:
+    - cron: "7,37 * * * *"   # har 30 daqiqada
+  workflow_dispatch: {}      # "Run workflow" tugmasi bilan qo'lda ishga tushirish
+
+permissions:
+  contents: write
+
+concurrency:
+  group: job-search
+  cancel-in-progress: false
+
+jobs:
+  search:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      - name: Oldingi holatni tiklash (qaysi e'lonlar yuborilgan)
+        run: |
+          mkdir -p data
+          if git fetch --depth 1 origin bot-state 2>/dev/null; then
+            git show FETCH_HEAD:jobs.db > data/jobs.db
+          else
+            echo "Birinchi ishga tushirish"
+          fi
+
+      - name: Qidirish va Telegramga yuborish
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+          WEBHOOK_URL: ${{ secrets.WEBHOOK_URL }}
+          SARAMIN_API_KEY: ${{ secrets.SARAMIN_API_KEY }}
+        run: python -m app.run_once
+
+      - name: Holatni saqlash
+        if: always()
+        run: |
+          [ -f data/jobs.db ] || exit 0
+          tmp=$(mktemp -d)
+          cp data/jobs.db "$tmp/jobs.db"
+          cd "$tmp"
+          git init -q -b bot-state
+          git config user.name "ish-topish-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add jobs.db
+          git commit -q -m "state $(date -u +%FT%TZ)"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" bot-state:bot-state

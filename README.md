@@ -11,14 +11,15 @@ Wanted, Saramin va JobKorea'dan koreys-o'zbek tarjimonlik va O'zbekiston–Korey
 - **✕ Rad etish**: xabar o'chib ketadi.
 - Telegram imkoniyatlari: yig'iladigan (expandable) tavsif bloki, reaksiyalar, xabar effekti, buyruqlar menyusi.
 
-## Ishga tushirish
-1. `.env.example` ni `.env` ga nusxalang va to'ldiring (bot token, Telegram ID; Gmail faqat email rejimi uchun).
-2. `profile.yaml` dagi qidiruv so'zlari va ballarni tekshiring (rezyume PDF faqat email rejimi uchun kerak).
-3. Saramin, JobKorea va Wanted'da CV'ingizni to'ldirib, telefoningiz brauzerida akkauntlarga kirib qo'ying.
-4. `pip install -r requirements.txt && python -m app.bot` yoki `docker build -t ishtopish . && docker run -d --restart=always --env-file .env -v $PWD/data:/app/data ishtopish`
-5. Telegramda botga `/start` yozing.
+## Ishga tushirish (bepul)
+Oddiy qadamlar: [QOLLANMA.md](QOLLANMA.md).
 
-## Buyruqlar
+- `.github/workflows/search.yml` — GitHub Actions har 30 daqiqada `python -m app.run_once` ni ishga tushiradi.
+  Qaysi e'lonlar yuborilgani `bot-state` branchidagi `jobs.db` da saqlanadi (dublikat kelmasligi uchun).
+- `api/telegram.py` — Vercel funksiyasi, Telegram webhook: tugmalarni darhol ishlaydi.
+- `app/bot.py` — muqobil: o'z serveringizda doimiy ishlaydigan versiya (`python -m app.bot` yoki Docker).
+
+## Buyruqlar (faqat server versiyasida)
 `/search` hozir qidirish · `/stats` statistika · `/pause` / `/resume`
 
 ## Testlar
