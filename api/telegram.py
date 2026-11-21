@@ -188,8 +188,17 @@ def set_paused(value: bool) -> bool:
 
 NEED_TOKEN = (
     "⚙️ Bu buyruq uchun Vercel'da <code>GH_TOKEN</code> kerak.\n"
-    "Qo'llanma: QOLLANMA.md > \"Buyruqlarni yoqish\"."
+    "Qo'llanma: QOLLANMA.md > \"Bot buyruqlari\"."
 )
+
+COMMANDS = [
+    {"command": "search", "description": "🔎 Hoziroq qidirish"},
+    {"command": "status", "description": "🤖 Bot holati"},
+    {"command": "stats", "description": "📊 Statistika"},
+    {"command": "pause", "description": "⏸ Qidiruvni to'xtatish"},
+    {"command": "resume", "description": "▶️ Davom ettirish"},
+    {"command": "help", "description": "❓ Yordam"},
+]
 
 HELP = (
     "🤖 <b>Ish Topish</b> — buyruqlar\n\n"
@@ -223,6 +232,8 @@ def handle_command(m: dict) -> None:
         return
 
     if cmd in ("/start", "/help"):
+        tg("setMyCommands", {"commands": COMMANDS})
+        tg("setChatMenuButton", {"chat_id": chat_id, "menu_button": {"type": "commands"}})
         send(HELP)
     elif cmd == "/search":
         code, _ = gh("POST", "/actions/workflows/search.yml/dispatches", {"ref": "main"})
